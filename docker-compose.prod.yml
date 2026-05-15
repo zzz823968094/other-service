@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Docker日志查询服务 - 生产环境
+  docker-log-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: docker-log-service:1.0.0
+    container_name: docker-log-service-prod
+    environment:
+      # Spring 配置 - 生产环境
+      - SPRING_PROFILES_ACTIVE=prod
+      # JVM 参数优化 - 生产环境
+      - JAVA_OPTS=-Xms512m -Xmx1024m -XX:+UseG1GC -XX:MaxGCPauseMillis=200
+      # 时区设置
+      - TZ=Asia/Shanghai
+    ports:
+      - "9091:9091"
+    volumes:
+      # 挂载 Docker Socket（允许容器执行 Docker 命令）
+      - /var/run/docker.sock:/var/run/docker.sock
+      # 挂载日志目录（持久化日志）
+      - ./logs:/app/logs
+    restart: unless-stopped
+    # 资源限制 - 生产环境
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+    # 健康检查
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9091/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # 网络模式
+    networks:
+      - docker-log-network
+    # 日志配置 - 生产环境
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "10"
+
+networks:
+  docker-log-network:
+    driver: bridge

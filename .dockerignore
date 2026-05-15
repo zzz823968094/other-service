@@ -1,0 +1,76 @@
+# ========================================
+# .dockerignore - Docker 构建忽略文件
+# 遵循阿里云容器化部署最佳实践
+# ========================================
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/
+
+# Gradle
+.gradle
+build/
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+docker-compose.yml
+docker-compose.prod.yml
+.dockerignore
+
+# 脚本文件（不需要复制到镜像）
+*.sh
+*.bat
+start.sh
+start.bat
+
+# 日志文件
+logs/
+*.log
+
+# 文档
+README.md
+README.en.md
+LICENSE
+docs/
+
+# 测试
+test/
+tests/
+*.test.js
+*.spec.js
+
+# 其他
+node_modules/
+.env
+.env.*

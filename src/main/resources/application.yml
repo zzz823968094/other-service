@@ -1,0 +1,28 @@
+server:
+  port: 9091
+  servlet:
+    session:
+      timeout: 30m
+
+spring:
+  application:
+    name: docker-log-service
+  profiles:
+    active: dev
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    serialization:
+      write-dates-as-timestamps: false
+
+logging:
+  level:
+    root: INFO
+    com.dockerlog.service: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+  file:
+    name: logs/docker-log-service.log
+    max-size: 10MB
+    max-history: 30

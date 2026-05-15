@@ -1,54 +1,19 @@
-version: '3.8'
+# docker-compose.yml
+# Docker日志查询服务 - Docker Compose配置
+# 使用 host 网络模式，容器直接共享宿主机网络栈
 
 services:
-  # Docker日志查询服务
-  docker-log-service:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: docker-log-service:1.0.0
+  docker-log:
+    build: .
     container_name: docker-log-service
-    environment:
-      # Spring 配置
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
-      # JVM 参数（可选，覆盖 Dockerfile 中的默认值）
-      - JAVA_OPTS=-Xms256m -Xmx512m -XX:+UseG1GC
-      # 时区设置
-      - TZ=Asia/Shanghai
-    ports:
-      - "9091:9091"
+    network_mode: host
     volumes:
-      # 挂载 Docker Socket（允许容器执行 Docker 命令）
+      # 挂载Docker Socket以访问Docker API
       - /var/run/docker.sock:/var/run/docker.sock
-      # 挂载日志目录（持久化日志）
+      # 挂载日志目录
       - ./logs:/app/logs
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - TZ=Asia/Shanghai
     restart: unless-stopped
-    # 资源限制（遵循阿里云最佳实践）
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-    # 健康检查
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9091/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    # 网络模式
-    networks:
-      - docker-log-network
-    # 日志配置
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
 
-networks:
-  docker-log-network:
-    driver: bridge

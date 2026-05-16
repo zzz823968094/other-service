@@ -74,8 +74,10 @@ public class DockerLogServiceImpl implements DockerLogService {
      */
     @Override
     public List<LogLineVO> queryLogs(LogQueryDTO queryDTO) {
-        log.info("查询容器日志: containerId={}, lines={}", 
+        log.info("开始查询容器日志: containerId={}, lines={}", 
             queryDTO.getContainerId(), queryDTO.getLines());
+        
+        long startTime = System.currentTimeMillis();
         
         // 验证容器是否存在
         if (!validateContainer(queryDTO.getContainerId())) {
@@ -98,8 +100,13 @@ public class DockerLogServiceImpl implements DockerLogService {
                 lines, 
                 queryDTO.getContainerId());
             
+            log.debug("执行Docker命令: {}", command);
+            
             // 执行命令获取日志
             List<String> logLines = DockerCommandUtil.executeCommandToList(command);
+            
+            long endTime = System.currentTimeMillis();
+            log.info("Docker命令执行完成，耗时: {}ms, 获取到{}行日志", (endTime - startTime), logLines.size());
             
             // 转换为VO对象
             List<LogLineVO> result = new ArrayList<>();
@@ -111,11 +118,12 @@ public class DockerLogServiceImpl implements DockerLogService {
                 result.add(logLineVO);
             }
             
-            log.info("查询到{}行日志", result.size());
+            log.info("查询到{}行日志，总耗时: {}ms", result.size(), System.currentTimeMillis() - startTime);
             return result;
             
         } catch (Exception e) {
-            log.error("查询容器日志失败: containerId={}", queryDTO.getContainerId(), e);
+            long endTime = System.currentTimeMillis();
+            log.error("查询容器日志失败: containerId={}, 耗时: {}ms", queryDTO.getContainerId(), endTime - startTime, e);
             throw new BusinessException("查询容器日志失败: " + e.getMessage());
         }
     }

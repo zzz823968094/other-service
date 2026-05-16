@@ -2,6 +2,7 @@ package com.dockerlog.service.controller;
 
 import com.dockerlog.service.common.result.Result;
 import com.dockerlog.service.dto.LogQueryDTO;
+import com.dockerlog.service.service.AsyncLogService;
 import com.dockerlog.service.service.DockerLogService;
 import com.dockerlog.service.service.RealTimeLogService;
 import com.dockerlog.service.vo.ContainerVO;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Docker日志控制器
@@ -34,6 +36,9 @@ public class DockerLogController {
     @Autowired
     private RealTimeLogService realTimeLogService;
 
+    @Autowired
+    private AsyncLogService asyncLogService;
+
     /**
      * 获取所有容器列表
      *
@@ -49,7 +54,7 @@ public class DockerLogController {
     }
 
     /**
-     * 查询容器日志
+     * 查询容器日志（同步方式）
      *
      * @param queryDTO 查询参数
      * @return 日志行列表
@@ -61,6 +66,27 @@ public class DockerLogController {
         List<LogLineVO> logs = dockerLogService.queryLogs(queryDTO);
         
         return Result.success(logs);
+    }
+
+    /**
+     * 查询容器日志（异步方式）
+     *
+     * @param queryDTO 查询参数
+     * @return 日志行列表
+     */
+    @PostMapping("/logs/async")
+    public CompletableFuture<Result<List<LogLineVO>>> queryLogsAsync(@Validated @RequestBody LogQueryDTO queryDTO) {
+        log.info("异步查询容器日志: containerId={}", queryDTO.getContainerId());
+        
+        return asyncLogService.queryLogsAsync(queryDTO)
+                .thenApply(logs -> {
+                    log.info("异步查询完成，返回{}行日志", logs.size());
+                    return Result.success(logs);
+                })
+                .exceptionally(throwable -> {
+                    log.error("异步查询失败", throwable);
+                    return Result.error("查询日志失败: " + throwable.getMessage());
+                });
     }
 
     /**

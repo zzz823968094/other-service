@@ -23,7 +23,7 @@ public final class DockerCommandUtil {
     /**
      * 命令执行超时时间（秒）
      */
-    private static final int COMMAND_TIMEOUT = 30;
+    private static final int COMMAND_TIMEOUT = 60;
 
     private DockerCommandUtil() {
         throw new IllegalStateException("工具类不允许实例化");
